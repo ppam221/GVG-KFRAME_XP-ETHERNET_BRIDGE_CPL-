@@ -976,6 +976,10 @@ class GVGCPLBridgeUDP:
                                      "seconds": seconds, "suite": self.suite})
         return ok, msg
 
+    def send_macro(self, number):
+        """Run macro `number` (1-999)."""
+        return self._dispatch(f"MACRO {number}", "send_macro", number)
+
     # ------------------------------------------------------------------ tally (TCP 2012)
     def start_tally_listener(self):
         if not self.live:
@@ -1224,7 +1228,7 @@ async def handle_message(raw, bridge):
             kind = "cut" if kind == "cut" else "auto"
             ok, msg = await asyncio.to_thread(bridge.send_transition, kind, me)
         elif action in ("aux", "aux_route"):
-            aux = _int_in_range(data, "aux", 1, 999)
+            aux = _int_in_range(data, "aux", 1, AUX_MAX)
             src = _int_in_range(data, "source", 1, 809)
             ok, msg = await asyncio.to_thread(bridge.send_aux, aux, src)
         elif action in ("key", "keyer"):
@@ -1238,10 +1242,10 @@ async def handle_message(raw, bridge):
             me = _int_in_range(data, "me", 0, MAX_ME, default=0)
             if "frames" in data:
                 fps = parse_fps(data["fps"]) if data.get("fps") is not None else bridge.fps   # one-shot override
-                seconds = int(data["frames"]) / fps
+                seconds = float(data["frames"]) / fps
             else:
                 seconds = float(data["seconds"])
-            keyer = _int_in_range(data, "keyer", 1, 16, default=1)
+            keyer = _int_in_range(data, "keyer", 1, KEYER_MAX, default=1)
             ok, msg = await asyncio.to_thread(bridge.send_rate, kind, me, seconds, keyer)
         elif action == "macro":
             mac = _int_in_range(data, "macro", 1, 999)
@@ -1312,7 +1316,7 @@ async def serve(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ip", default="10.1.32.10")
+    ap.add_argument("--ip", default="127.0.0.1")
     ap.add_argument("--suite", type=int, choices=[1, 2, 3, 4], default=1)
     ap.add_argument("--ws-host", default="0.0.0.0")
     ap.add_argument("--ws-port", type=int, default=8765)

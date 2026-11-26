@@ -23,5 +23,5 @@ if errorlevel 1 (
     goto prompt_ip
 )
 
-start "NT Bridge Live" python GVG_CPL_V100.py --ip %USER_IP% --suite %USER_SUITE% --name "%USER_NAME%" --fps %USER_FPS% --version %VERSION% --live || CALL IF EnsureError
+start "NT Bridge Live" python GVG_CPL_V100.py --ip %USER_IP% --suite %USER_SUITE% --name "%USER_NAME%" --fps %USER_FPS% --version %VERSION% --live
 
